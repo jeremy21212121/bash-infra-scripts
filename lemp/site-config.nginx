@@ -1,0 +1,29 @@
+
+server {
+	listen 80;
+	listen [::]:80;
+
+
+	root /var/www/{{DOMAINNAME}};
+
+	index index.php index.html index.htm;
+
+	server_name {{DOMAINNAME}} www.{{DOMAINNAME}};
+  
+  
+  location = /favicon.ico { log_not_found off; access_log off; }
+  location = /robots.txt { log_not_found off; access_log off; allow all; }
+  location ~* \.(css|gif|ico|jpeg|jpg|js|png|webp|ttf|woff|woff2|svg|otf)$ {
+      expires max;
+  }
+
+	location / {
+		try_files $uri $uri/ =404;
+	}
+  
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/{{PHPFPM}}.sock;
+  }
+
+}
