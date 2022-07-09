@@ -1,9 +1,8 @@
---- replace $DBUSERPASS with the desired password
+--- Creates DB, user and sets user password
+--- {{DBUSERPASS}} will be replaced by .env var of the same name
 
 CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
-CREATE USER 'wordpressuser'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{DBUSERPASS}}';
-
-GRANT ALL ON wordpress.* TO 'wordpressuser'@'localhost';
+GRANT ALL ON wordpress.* TO 'wordpressuser'@'localhost' IDENTIFIED BY '{{DBUSERPASS}}';
 
 FLUSH PRIVILEGES;
