@@ -168,6 +168,8 @@ echo -e "Showing permissions for new DB user \"wordpressuser\". Should see permi
 
 DB_PERMISH=$(sudo mysql < show_grants.sql)
 
+echo """$DB_PERMISH"""
+
 echo -e "\n * Investigate further if you didn't see what was described. Yes, I could have done it programatically but I'm tired :P \n \n"
 
 echo "'nginx', 'mariadb' and 'php' have been installed. 'mariadb' has been configured for wordpress. 'ufw' firewall, if present, has been opened for 'nginx'. :D"
