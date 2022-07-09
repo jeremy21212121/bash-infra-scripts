@@ -160,7 +160,7 @@ echo -e "\n... database configured! \n"
 echo -e "Listing wordpress DB. Should see one result: \n"
 
 DB_RESULTS=$(sudo mysql < show_db.sql)
-echo "$DB_RESULT"
+echo """$DB_RESULTS"""
 
 echo ""
 
