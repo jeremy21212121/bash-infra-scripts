@@ -34,6 +34,11 @@ if [ -z "$DOMAINNAME" ]; then
   exit 1
 fi
 
+if [ -z "$LE_EMAIL" ]; then
+  echo -e "\nLE_EMAIL environment variables is unset or empty. This is needed for important updates from Let's Encrypt"
+  exit 1
+fi
+
 echo -e "... required environment variables have been loaded.\n"
 
 # inject $DBUSERPASS into wordpress.sql
@@ -83,7 +88,7 @@ echo -e "\nChecking for 'ufw' firewall..."
 # if `ufw` is installed then allow Nginx preset
 if [[ -f $(which ufw) ]]; then
   echo "...'ufw' firewall found, adding allow rule for nginx"
-  sudo ufw allow 'Nginx HTTP';
+  sudo ufw allow 'Nginx Full';
 else
   echo "...'ufw' firewall not installed, skipping";
 fi;
@@ -220,7 +225,108 @@ else
   exit 1;
 fi;
 
+echo -e "Removing temp PHP file.\n"
+
 # remove test php file
 rm $WEBROOTPATH/index.php
 
+
+######################################################################
+# Setup TLS via let's encrypt
+######################################
+echo -e "\nEnabling TLS with Let's Encrypt. Cert will be renewed automagically....\n\nFirst we will install certbot deps...\n\n"
+
+sudo apt install -y python3-acme python3-certbot python3-mock python3-openssl python3-pkg-resources python3-pyparsing python3-zope.interface
+
+echo -e "\n\nInstalling certbot with nginx plugin...\n\n"
+
+sudo apt install -y python3-certbot-nginx
+
+# do the thing! This will get us a cert valid for $DOMAINNAME and www.$DOMAINNAME and auto updates.
+# We are using the following options:
+# -n is for non-interactive,
+# --agree-tos is obvious,
+# --redirect configures redirect to HTTPS,
+# -m $LE_EMAIL env var should contain your email address to be notified if your cert is going to expire
+echo -e "\n\nWe are about to configure certbot to get our cert, autorenew cert as needed and config nginx to redirect to HTTPS.\n\n***Check the output carefully to see that it works***\n\n"
+
+sudo certbot --nginx -n --agree-tos --redirect -m "$LE_EMAIL" -d "$DOMAINNAME" -d "www.$DOMAINNAME"
+
+echo -e "\n\nTest the autorenewal process with a dry run. Check the following output to see that it succeeds:\n\n\n"
+
+sudo certbot renew --dry-run
+
+echo -e "\n\n\n...Certbot is configured and TLS is enabled!\n\n"
+
+###################################################################
+# Install/configure wordpress
+######################################
+
 # download wordpress
+echo -e "Downloading WordPress...\n"
+
+mkdir /tmp/wp
+
+curl -sSLo /tmp/wp/latest.tar.gz https://wordpress.org/latest.tar.gz
+
+echo -e "...WordPress downloaded to /tmp/wp\n\nUnzipping WordPress...\n"
+
+tar xzvf /tmp/wp/latest.tar.gz
+
+echo -e "Configuring wp-config.php...\n"
+
+# temporary path for wp-config.php. We'll copy to whole parent directory into place later
+TMP_WPCFG_PATH=/tmp/wp/wordpress/wp-config.php
+
+cp /tmp/wp/wordpress/wp-config-sample.php $TMP_WPCFG_PATH
+
+# set required values in wp-config.php
+# we are using `wordpress` as DB name and `wordpressuser` as DB username
+sed -i "s/database_name_here/wordpress/" $TMP_WPCFG_PATH
+sed -i "s/username_here/wordpressuser/" $TMP_WPCFG_PATH
+sed -i "s/password_here/$DBUSERPASS/" $TMP_WPCFG_PATH
+
+# We need to remove the dummy key/salt lines and replace them with random keys/salts
+# We'll find the line number where this string appears so we can remove lines from there.
+WPC_START_STRING="define( 'AUTH_KEY',         'put your unique phrase here' );"
+WPC_END_STRING="define( 'NONCE_SALT',       'put your unique phrase here' );"
+# get line numbers of above strings
+WPC_START=$(sed -n "/$WPC_START_STRING/=" $TMP_WPCFG_PATH)
+WPC_END=$(sed -n "/$WPC_END_STRING/=" $TMP_WPCFG_PATH)
+
+# placeholder string
+WPC_PLACEHOLDER="{{PLACEHOLDER}}"
+
+# remove the key/salt section, to be replaced later with random values
+sed -i "$WPC_START,$WPC_END""d" $TMP_WPCFG_PATH
+
+# add placeholder at desired location so we can insert new keys/salts there
+sed -i "$WPC_START"" i $WPC_PLACEHOLDER" $TMP_WPCFG_PATH
+
+# download keys/salts into a temp file
+TMP_SALT_PATH=/tmp/wp/wordpress/salt.txt
+curl -sS https://api.wordpress.org/secret-key/1.1/salt > $TMP_SALT_PATH
+
+# add salts/keys after placeholder
+sed -e "/$WPC_PLACEHOLDER/r$TMP_SALT_PATH" $TMP_WPCFG_PATH
+
+# remove placeholder
+sed -i "s/$WPC_PLACEHOLDER//" $TMP_WPCFG_PATH
+
+rm $TMP_SALT_PATH
+
+echo -e "\n...Done configuring wp-config.php!\n"
+
+# move wordpress files into place. why did we put them in /tmp first? who knows!
+sudo cp -a /tmp/wp/wordpress/. $WEBROOTPATH
+
+# set WEBROOT folder ownership to that of nginx so auto updates hopefully work
+sudo chown -R www-data:www-data $WEBROOTPATH
+
+# Remove temp wordpress files now that we have copied them
+rm -rf /tmp/wp
+
+# huzzah! we should probably be done now. We need to setup wordpress manually via web browser from here.
+echo -e "\n\nWordPress installation is complete! Visit $DOMAINNAME to finish config via web browser. Do it now before somebody else does it for you :D\n\n"
+
+echo -e "We are all done here. If you are reading this, congrats! This whole file executed without an error and without encountering an undefined variable.\n\n"

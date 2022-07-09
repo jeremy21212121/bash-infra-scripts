@@ -32,5 +32,6 @@ Still work-in-progress:
 Create a `.env` file with the following key/values:
 
 - `DBUSERPASSWORD` - For the mariadb user password. We will look for this value and swap it into `wordpress.sql`
-- `DOMAINNAME` - The domain name of the site. We're assuming it's a second level domain (eg. `thing.com`). No `www.`, that is so 20th century. If you need to use a third level domain you are SOL. 
+- `DOMAINNAME` - The domain name of the site. We're assuming it's a second level domain (eg. `thing.com`). No `www.`, that is so 20th century. If you need to use a third level domain you are SOL.
+- `LE_EMAIL` - Email address used for Let's Encrypt TLS. They will email you here if your cert doesn't renew automagically for some reason and is going to expire. I have never gotten any spam from LE so no worries there.
 
