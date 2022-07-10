@@ -10,7 +10,7 @@
 
 # exit if any errors are encountered
 # we don't want to continue if any steps fail
-set -euxo pipefail
+set -euo pipefail
 # echo failure message on error so it is obvious that the script did not complete.
 trap "echo -e \" *\n **\n *** Error! Script did not complete. See above for last command executed *** \"" ERR
 
