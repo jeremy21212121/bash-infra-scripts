@@ -309,8 +309,14 @@ sed -i "$WPC_START"" i $WPC_PLACEHOLDER" $TMP_WPCFG_PATH
 TMP_SALT_PATH=/tmp/wp/wordpress/salt.txt
 curl -sS https://api.wordpress.org/secret-key/1.1/salt > $TMP_SALT_PATH
 
-# add salts/keys after placeholder
-sed -e "/$WPC_PLACEHOLDER/r$TMP_SALT_PATH" $TMP_WPCFG_PATH > $TMP_WPCFG_PATH
+# add salts/keys after placeholder.
+# Save it into a temp file otherwise we end up with an empty file for some reason.
+sed -e "/$WPC_PLACEHOLDER/r$TMP_SALT_PATH" $TMP_WPCFG_PATH > "${TMP_WPCFG_PATH}2"
+# remove the existing cfg file so we can copy the temp one to replace it
+rm $TMP_WPCFG_PATH
+# rename the temp file with the correct contents to wp-config.php
+mv "${TMP_WPCFG_PATH}2" $TMP_WPCFG_PATH
+
 
 # remove placeholder
 sed -i "s/$WPC_PLACEHOLDER//" $TMP_WPCFG_PATH
