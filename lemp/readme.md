@@ -21,9 +21,6 @@ These scripts perform the following tasks:
 - Installs LEMP stack (nginx, mariadb, php-fpm) and some PHP extensions commonly used by wordpress plugins
 - Creates a database for wordpress to use
 - Installs latest Wordpress (it is available in the Debian repos, but the version is old and I'm concerned about plugin compatibility)
-
-Still work-in-progress:
-
 - Configure site in nginx
 - Setup TLS with Let's Encrypt
 
@@ -35,3 +32,12 @@ Create a `.env` file with the following key/values:
 - `DOMAINNAME` - The domain name of the site. We're assuming it's a second level domain (eg. `thing.com`). No `www.`, that is so 20th century. If you need to use a third level domain you are SOL.
 - `LE_EMAIL` - Email address used for Let's Encrypt TLS. They will email you here if your cert doesn't renew automagically for some reason and is going to expire. I have never gotten any spam from LE so no worries there.
 
+## How to use this monstrosity?
+
+Don't. Failing that:
+
+- run `a-add-user.sh` as root on first login.
+- Exit the SSH connection and re-connect as `debian`.
+- Run `b-unattended-upgrades.sh` to install/configure auto security updates
+- Run `1-lemp.sh` to do the rest of the things
+- Now you can connect via web browser to complete the WP install. Do it quickly before somebody else does it for you :D
