@@ -170,7 +170,7 @@ DB_PERMISH=$(sudo mysql < show_grants.sql)
 
 echo """$DB_PERMISH"""
 
-echo -e "\n * Investigate further if you didn't see what was described. Yes, I could have done it programatically but I'm tired :P \n \n"
+echo -e "\n * Investigate further if you didn't see what was described. Yes, I could have done it programatically but I'm tired :P  *\n \n"
 
 echo "'nginx', 'mariadb' and 'php' have been installed. 'mariadb' has been configured for wordpress. 'ufw' firewall, if present, has been opened for 'nginx'. :D"
 
@@ -273,7 +273,7 @@ curl -sSLo /tmp/wp/latest.tar.gz https://wordpress.org/latest.tar.gz
 
 echo -e "...WordPress downloaded to /tmp/wp\n\nUnzipping WordPress...\n"
 
-tar xzvf /tmp/wp/latest.tar.gz
+tar xzf /tmp/wp/latest.tar.gz -C /tmp/wp
 
 echo -e "Configuring wp-config.php...\n"
 
@@ -310,7 +310,7 @@ TMP_SALT_PATH=/tmp/wp/wordpress/salt.txt
 curl -sS https://api.wordpress.org/secret-key/1.1/salt > $TMP_SALT_PATH
 
 # add salts/keys after placeholder
-sed -e "/$WPC_PLACEHOLDER/r$TMP_SALT_PATH" $TMP_WPCFG_PATH
+sed -e "/$WPC_PLACEHOLDER/r$TMP_SALT_PATH" $TMP_WPCFG_PATH > $TMP_WPCFG_PATH
 
 # remove placeholder
 sed -i "s/$WPC_PLACEHOLDER//" $TMP_WPCFG_PATH
