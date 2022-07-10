@@ -2,7 +2,7 @@
 
 Scripts for installing/configuring LEMP stack with Wordpress. This is just for my benefit, not intended to be used by anybody else. It definitely takes more time than just banging out the commands, but it is also more fun. That's right, I actually enjoy writing bash scripts and yes, I am a lot of fun at parties.
 
-## WHy
+## Why
 
 I had to spin up a new web server for a client so I decided to script the process to make it easily repeatable. I know it isn't as hip as using terraform or ansible, but it is practical for my needs and saves me having to learn a new tool in my limited spare time.
 
